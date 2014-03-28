@@ -17,6 +17,7 @@ module.exports = chart;
  * - `width` total chart width [130]
  * - `height` total chart height [30]
  * - `padding` edge padding [3]
+ * - `labels` x-axis labels [[]]
  *
  * @param {Array} data
  * @param {Object} [opts]
@@ -30,6 +31,11 @@ function chart(data, opts) {
   // options
   var w = opts.width || 130;
   var h = opts.height || 30;
+  var labels = opts.labels || [];
+  
+  // height with labels
+  var lh = h;
+  h -= 1;
 
   // padding
   var pad = opts.padding || 3;
@@ -37,7 +43,7 @@ function chart(data, opts) {
   h -= pad * 2;
 
   // setup
-  var out = matrix(w, h);
+  var out = matrix(w, lh);
   var m = max(data) || 0;
   var label = Math.abs(m).toString();
   var labelw = label.length;
@@ -48,7 +54,7 @@ function chart(data, opts) {
   var cw = w - labelw - labelp;
 
   // fill
-  for (var y = 0; y < h; y++) {
+  for (var y = 0; y < lh; y++) {
     for (var x = 0; x < w; x++) {
       out[y][x] = ' ';
     }
@@ -72,7 +78,7 @@ function chart(data, opts) {
     out[h - 1][x++] = '․';
     out[h - 1][x++] = ' ';
   }
-
+  
   // strip excess from head
   // so that data may "roll"
   var space = Math.floor(w / 2) - 1;
@@ -91,8 +97,25 @@ function chart(data, opts) {
     while (y--) {
       out[Math.abs(y - h) - 2][x] = c;
     }
-
+    
     x += 2;
+  }
+  
+  // x-axis labels
+  var labelLength = labels.length;
+  var labelWidth = labelLength > 0 ? data.length * 2 - labels[labelLength - 1].length : 0;
+  for (var i = 0; i < labelLength; i++) {
+    var lab = '' + labels[i];
+    
+    // if there's only one label position
+    // it in the middle
+    var part = i / (labelLength - 1);
+    if(isNaN(part)) part = 0.5;
+    var pos = Math.floor(part * labelWidth);
+    
+    for (var j = 0; j < lab.length; j++) {
+      out[h][pad + pos + j] = lab[j];
+    }
   }
 
   return padding(string(out, h), pad);
